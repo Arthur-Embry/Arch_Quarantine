@@ -1,0 +1,5 @@
+fastapi
+typing
+uvicorn
+markdown
+openai

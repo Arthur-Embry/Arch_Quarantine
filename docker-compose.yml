@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  app:
+    build: .
+    ports:
+      - "5000:8080"
+    volumes:
+      - .:/code

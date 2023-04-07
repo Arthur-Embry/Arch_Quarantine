@@ -1,0 +1,40 @@
+name: cloudrun-deploy
+on:
+  push:
+    branches:
+      - main
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_email: ${{ secrets.GCP_EMAIL }}
+        service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+        export_default_credentials: true
+    
+    # Configure Docker with Credentials
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker
+      
+    # Build the Docker image
+    - name: Build & Publish
+      run: |
+        gcloud config set project black-wire-id-884601
+        # Use a different variable for the image name
+        gcloud builds submit --tag gcr.io/black-wire-id-884601/black-wire-id-884601
+        gcloud config set run/region us-central1
+      
+    # Deploy the Docker image to the GKE cluster
+    - name: Deploy
+      run: |
+        gcloud run deploy actions-workflow-manager --image gcr.io/black-wire-id-884601/black-wire-id-884601 \
+        --platform managed \
+        --allow-unauthenticated \
+        --memory 512M
